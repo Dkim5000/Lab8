@@ -70,7 +70,29 @@ int main()
     right.setStatic(true);
     world.AddPhysicsBody(right);
 
-
+    Texture redTex;
+    LoadTex(redTex, "images/duck.png");
+    PhysicsShapeList<PhysicsSprite> balloons;
+    for (int i(0); i < 6; i++) {
+        PhysicsSprite& balloon = balloons.Create();
+        balloon.setTexture(redTex);
+        int x = 50 + ((700 / 5) * i);
+        Vector2f sz = balloon.getSize();
+        balloon.setCenter(Vector2f(x, 20 + (sz.y / 2)));
+        balloon.setVelocity(Vector2f(0.25, 0));
+        world.AddPhysicsBody(balloon);
+        balloon.onCollision =
+            [&drawingArrow, &world, &arrow, &balloon, &balloons, &score]
+            (PhysicsBodyCollisionResult result) {
+            if (result.object2 == arrow) {
+                drawingArrow = false;
+                world.RemovePhysicsBody(arrow);
+                world.RemovePhysicsBody(balloon);
+                balloons.QueueRemove(balloon);
+                score += 10;
+            }
+            };
+    }
 
     top.onCollision = [&drawingArrow, &world, &arrow]
     (PhysicsBodyCollisionResult result) {
@@ -80,8 +102,8 @@ int main()
 
     Text scoreText;
     Font font;
-    if (!font.loadFromFile("arial.ttf")) {
-        cout << "Couldn't load font arial.ttf" << endl;
+    if (!font.loadFromFile("comic.ttf")) {
+        cout << "Couldn't load font sans.ttf" << endl;
         exit(1);
     }
     scoreText.setFont(font);
@@ -92,7 +114,7 @@ int main()
     Time lastTime(clock.getElapsedTime());
     Time currentTime(lastTime);
 
-    while (true) {
+    while ((arrows > 0) || drawingArrow) {
         currentTime = clock.getElapsedTime();
         Time deltaTime = currentTime - lastTime;
         long deltaMS = deltaTime.asMilliseconds();
@@ -106,18 +128,31 @@ int main()
                 arrow.setCenter(crossBow.getCenter());
                 arrow.setVelocity(Vector2f(0, -1));
                 world.AddPhysicsBody(arrow);
+                arrows -= 1;
             }
 
             window.clear();
             if (drawingArrow) {
                 window.draw(arrow);
             }
-
+            for (PhysicsShape& balloon : balloons) {
+                window.draw((PhysicsSprite&)balloon);
+            }
             window.draw(crossBow);
-            world.VisualizeAllBounds(window);
+            scoreText.setString(to_string(score));
+            FloatRect textBounds = scoreText.getGlobalBounds();
+            scoreText.setPosition(
+                Vector2f(790 - textBounds.width, 590 - textBounds.height));
+            window.draw(scoreText);
+            arrowCountText.setString(to_string(arrows));
+            textBounds = arrowCountText.getGlobalBounds();
+            arrowCountText.setPosition(
+                Vector2f(10, 590 - textBounds.height));
+            window.draw(arrowCountText);
+            //world.VisualizeAllBounds(window);
 
             window.display();
-
+            balloons.DoRemovals();
         }
     }
     Text gameOverText;
