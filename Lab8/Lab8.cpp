@@ -33,7 +33,7 @@ void MoveCrossbow(PhysicsSprite& crossbow, int elapsedMS) {
 
 int main()
 {
-    RenderWindow window(VideoMode(800, 600), "Balloon Buster");
+    RenderWindow window(VideoMode(800, 600), "Duck Hunt");
     World world(Vector2f(0, 0));
     int score(0);
     int arrows(5);
@@ -57,18 +57,6 @@ int main()
     top.setCenter(Vector2f(400, 5));
     top.setStatic(true);
     world.AddPhysicsBody(top);
-
-    PhysicsRectangle left;
-    left.setSize(Vector2f(10, 600));
-    left.setCenter(Vector2f(5, 300));
-    left.setStatic(true);
-    world.AddPhysicsBody(left);
-
-    PhysicsRectangle right;
-    right.setSize(Vector2f(10, 600));
-    right.setCenter(Vector2f(795, 300));
-    right.setStatic(true);
-    world.AddPhysicsBody(right);
 
     Texture redTex;
     LoadTex(redTex, "images/duck.png");
@@ -135,8 +123,18 @@ int main()
             if (drawingArrow) {
                 window.draw(arrow);
             }
+            PhysicsSprite& balloon = balloons.Create(); 
+            balloon.setTexture(redTex); 
+            int x = 50 + ((700 / 5)); 
+            Vector2f sz = balloon.getSize(); 
+            balloon.setCenter(Vector2f(x, 20 + (sz.y / 2))); 
+            balloon.setVelocity(Vector2f(0.25, 0)); 
+            world.AddPhysicsBody(balloon); 
             for (PhysicsShape& balloon : balloons) {
                 window.draw((PhysicsSprite&)balloon);
+                currentTime = clock.getElapsedTime(); 
+                Time deltaTime = currentTime - lastTime; 
+                long deltaMS = deltaTime.asMilliseconds(); 
             }
             window.draw(crossBow);
             scoreText.setString(to_string(score));
