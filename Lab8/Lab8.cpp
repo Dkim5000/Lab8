@@ -102,10 +102,12 @@ int main()
     Time lastTime(clock.getElapsedTime());
     Time currentTime(lastTime);
 
+    long duckMS(0); 
     while ((arrows > 0) || drawingArrow) {
         currentTime = clock.getElapsedTime();
         Time deltaTime = currentTime - lastTime;
         long deltaMS = deltaTime.asMilliseconds();
+        duckMS = duckMS + deltaMS; //increment our duck counter
         if (deltaMS > 9) {
             lastTime = currentTime;
             world.UpdatePhysics(deltaMS);
@@ -123,18 +125,9 @@ int main()
             if (drawingArrow) {
                 window.draw(arrow);
             }
-            PhysicsSprite& balloon = balloons.Create(); 
-            balloon.setTexture(redTex); 
-            int x = 50 + ((700 / 5)); 
-            Vector2f sz = balloon.getSize(); 
-            balloon.setCenter(Vector2f(x, 20 + (sz.y / 2))); 
-            balloon.setVelocity(Vector2f(0.25, 0)); 
-            world.AddPhysicsBody(balloon); 
+            balloons.DoRemovals();
             for (PhysicsShape& balloon : balloons) {
                 window.draw((PhysicsSprite&)balloon);
-                currentTime = clock.getElapsedTime(); 
-                Time deltaTime = currentTime - lastTime; 
-                long deltaMS = deltaTime.asMilliseconds(); 
             }
             window.draw(crossBow);
             scoreText.setString(to_string(score));
@@ -151,6 +144,27 @@ int main()
 
             window.display();
             balloons.DoRemovals();
+        }
+        if (duckMS > 600) { //2000 MS is 2 seconds
+            duckMS = 0;
+            PhysicsSprite& balloon = balloons.Create(); 
+            balloon.setTexture(redTex); 
+            int x = 50 + ((700 / 5));
+            Vector2f sz = balloon.getSize(); 
+            balloon.setCenter(Vector2f(-100, 20 + (sz.y / 2))); 
+            balloon.setVelocity(Vector2f(0.25, 0)); 
+            world.AddPhysicsBody(balloon);  
+            balloon.onCollision =
+                [&drawingArrow, &world, &arrow, &balloon, &balloons, &score] 
+                (PhysicsBodyCollisionResult result) { 
+                if (result.object2 == arrow) {
+                    drawingArrow = false;
+                    world.RemovePhysicsBody(arrow);
+                    world.RemovePhysicsBody(balloon);
+                    balloons.QueueRemove(balloon);
+                    score += 10;
+                }
+                };
         }
     }
     Text gameOverText;
