@@ -102,7 +102,7 @@ int main()
     Time lastTime(clock.getElapsedTime());
     Time currentTime(lastTime);
 
-    long duckMS(0); 
+    long duckMS(0);
     while ((arrows > 0) || drawingArrow) {
         currentTime = clock.getElapsedTime();
         Time deltaTime = currentTime - lastTime;
@@ -147,16 +147,16 @@ int main()
         }
         if (duckMS > 600) { //2000 MS is 2 seconds
             duckMS = 0;
-            PhysicsSprite& balloon = balloons.Create(); 
-            balloon.setTexture(redTex); 
+            PhysicsSprite& balloon = balloons.Create();
+            balloon.setTexture(redTex);
             int x = 50 + ((700 / 5));
-            Vector2f sz = balloon.getSize(); 
-            balloon.setCenter(Vector2f(-100, 20 + (sz.y / 2))); 
-            balloon.setVelocity(Vector2f(0.25, 0)); 
-            world.AddPhysicsBody(balloon);  
+            Vector2f sz = balloon.getSize();
+            balloon.setCenter(Vector2f(-100, 20 + (sz.y / 2)));
+            balloon.setVelocity(Vector2f(0.25, 0));
+            world.AddPhysicsBody(balloon);
             balloon.onCollision =
-                [&drawingArrow, &world, &arrow, &balloon, &balloons, &score] 
-                (PhysicsBodyCollisionResult result) { 
+                [&drawingArrow, &world, &arrow, &balloon, &balloons, &score]
+                (PhysicsBodyCollisionResult result) {
                 if (result.object2 == arrow) {
                     drawingArrow = false;
                     world.RemovePhysicsBody(arrow);
@@ -177,5 +177,9 @@ int main()
     ));
     window.draw(gameOverText);
     window.display();
-    while (true);
+    while (true){
+        if (Keyboard::isKeyPressed(Keyboard::Space)) {
+            exit(0);
+        }
+    }
 }
